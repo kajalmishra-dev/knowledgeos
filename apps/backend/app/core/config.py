@@ -36,6 +36,37 @@ class Settings(BaseSettings):
     database_pool_recycle: int = Field(default=1800, validation_alias="DATABASE_POOL_RECYCLE")
     database_pool_pre_ping: bool = Field(default=True, validation_alias="DATABASE_POOL_PRE_PING")
 
+    jwt_secret_key: str = Field(
+        default="dev-only-change-me",
+        validation_alias="JWT_SECRET_KEY",
+    )
+    jwt_algorithm: str = Field(default="HS256", validation_alias="JWT_ALGORITHM")
+    jwt_access_token_expire_minutes: int = Field(
+        default=15,
+        validation_alias="JWT_ACCESS_TOKEN_EXPIRE_MINUTES",
+    )
+    refresh_token_expire_days: int = Field(default=7, validation_alias="REFRESH_TOKEN_EXPIRE_DAYS")
+    refresh_token_cookie_name: str = Field(
+        default="refresh_token",
+        validation_alias="REFRESH_TOKEN_COOKIE_NAME",
+    )
+    refresh_token_cookie_path: str = Field(
+        default="/api/v1/auth",
+        validation_alias="REFRESH_TOKEN_COOKIE_PATH",
+    )
+    refresh_token_cookie_secure: bool = Field(
+        default=False,
+        validation_alias="REFRESH_TOKEN_COOKIE_SECURE",
+    )
+    refresh_token_cookie_httponly: bool = Field(
+        default=True,
+        validation_alias="REFRESH_TOKEN_COOKIE_HTTPONLY",
+    )
+    refresh_token_cookie_samesite: Literal["lax", "strict", "none"] = Field(
+        default="lax",
+        validation_alias="REFRESH_TOKEN_COOKIE_SAMESITE",
+    )
+
     @property
     def sqlalchemy_echo(self) -> bool:
         if self.database_echo is not None:

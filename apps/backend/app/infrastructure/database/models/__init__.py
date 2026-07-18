@@ -1,8 +1,7 @@
 """
-ORM model registry for Alembic metadata discovery.
-
-Import concrete model modules here as they are added so autogenerate can
-detect schema changes.
+Import all ORM model modules here for Alembic metadata discovery.
 """
 
-# Business entity imports will be added in future milestones.
+from app.modules.auth.infrastructure.models import RefreshTokenModel, UserModel
+
+__all__ = ["RefreshTokenModel", "UserModel"]
