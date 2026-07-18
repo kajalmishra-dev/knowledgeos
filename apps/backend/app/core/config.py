@@ -29,6 +29,18 @@ class Settings(BaseSettings):
         default="postgresql+psycopg://postgres:postgres@localhost:5432/knowledgeos",
         validation_alias="DATABASE_URL",
     )
+    database_echo: bool | None = Field(default=None, validation_alias="DATABASE_ECHO")
+    database_pool_size: int = Field(default=5, validation_alias="DATABASE_POOL_SIZE")
+    database_max_overflow: int = Field(default=10, validation_alias="DATABASE_MAX_OVERFLOW")
+    database_pool_timeout: int = Field(default=30, validation_alias="DATABASE_POOL_TIMEOUT")
+    database_pool_recycle: int = Field(default=1800, validation_alias="DATABASE_POOL_RECYCLE")
+    database_pool_pre_ping: bool = Field(default=True, validation_alias="DATABASE_POOL_PRE_PING")
+
+    @property
+    def sqlalchemy_echo(self) -> bool:
+        if self.database_echo is not None:
+            return self.database_echo
+        return self.debug
 
 
 @lru_cache
