@@ -1,0 +1,132 @@
+name: knowledgeos
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: knowledgeos-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-knowledgeos}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-knowledgeos}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - knowledgeos
+
+  redis:
+    image: redis:8-alpine
+    container_name: knowledgeos-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - knowledgeos
+
+  minio:
+    image: minio/minio:latest
+    container_name: knowledgeos-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:9000/minio/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - knowledgeos
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: knowledgeos-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_HOST: minio
+      MINIO_PORT: 9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_BUCKET: ${MINIO_BUCKET:-knowledgeos}
+    volumes:
+      - ./infrastructure/minio/init/create-bucket.sh:/init/create-bucket.sh:ro
+    entrypoint: ["/bin/sh", "/init/create-bucket.sh"]
+    networks:
+      - knowledgeos
+
+  backend:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/backend/Dockerfile
+    container_name: knowledgeos-backend
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      APP_NAME: ${APP_NAME:-KnowledgeOS API}
+      APP_VERSION: ${APP_VERSION:-0.1.0}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEBUG: ${DEBUG:-true}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      API_V1_PREFIX: ${API_V1_PREFIX:-/api/v1}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-knowledgeos}
+      REDIS_URL: redis://redis:6379/${REDIS_DB:-0}
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_BUCKET: ${MINIO_BUCKET:-knowledgeos}
+      MINIO_SECURE: "false"
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./apps/backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - knowledgeos
+
+networks:
+  knowledgeos:
+    name: knowledgeos-network
+    driver: bridge
+
+volumes:
+  postgres_data:
+    name: knowledgeos-postgres-data
+  redis_data:
+    name: knowledgeos-redis-data
+  minio_data:
+    name: knowledgeos-minio-data

@@ -1,0 +1,17 @@
+.git
+.gitignore
+**/.venv
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+**/node_modules
+**/.next
+apps/frontend
+*.md
+!apps/backend/README.md
+.env
+.env.*
+!.env.example
+!apps/backend/.env.example

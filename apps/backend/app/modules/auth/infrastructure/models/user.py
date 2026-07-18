@@ -20,3 +20,7 @@ class UserModel(BaseModel, Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+    workspaces: Mapped[list["WorkspaceModel"]] = relationship(
+        back_populates="owner",
+        cascade="all, delete-orphan",
+    )
