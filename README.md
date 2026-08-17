@@ -1,22 +1,7 @@
+> **PAUSED** — Early scaffold only. RAG/knowledge features are not implemented. Active GenAI work is in [NOVUM](../NOVUM/NOVUM). See [PORTFOLIO.md](../PORTFOLIO.md).
+
 ## Overview
 
-KnowledgeOS is a production-grade AI-powered knowledge workspace inspired by Notion AI, NotebookLM, Obsidian, and Perplexity Spaces.
+KnowledgeOS was planned as a production-grade AI knowledge workspace. The current repo has a strong auth/workspace foundation, but the product is not complete enough for portfolio use.
 
-It enables users to collect, organize, search, and interact with knowledge from multiple sources using Retrieval-Augmented Generation (RAG), semantic search, and knowledge graphs.
-
-This project is being built with a **production-first engineering mindset**, emphasizing scalability, maintainability, security, and clean architecture.
-
----
-
-## ✨ Planned Features
-
-### Knowledge Management
-
-- PDF Upload
-- DOCX Support
-- Markdown Support
-- URL Import
-- GitHub Repository Import
-- YouTube Import
-- Image OCR
-- Audio Transcription
+Use **NOVUM** for full-stack + GenAI interview discussion instead.
