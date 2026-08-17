@@ -1,7 +1,9 @@
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 
 from app.api.v1.router import api_v1_router
 from app.core.config import get_settings
+from app.core.exceptions import AppError
 from app.core.lifespan import lifespan
 
 
@@ -18,8 +20,11 @@ def create_app() -> FastAPI:
         openapi_url="/openapi.json" if settings.debug else None,
     )
 
-    application.include_router(api_v1_router, prefix=settings.api_v1_prefix)
+    @application.exception_handler(AppError)
+    async def app_error_handler(_, exc: AppError) -> JSONResponse:
+        return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
 
+    application.include_router(api_v1_router, prefix=settings.api_v1_prefix)
     return application
 
 

@@ -2,10 +2,10 @@ import pytest
 
 
 @pytest.mark.integration
-def test_register_login_and_me(client, unique_email: str) -> None:
+def test_register_login_and_me(db_client, unique_email: str) -> None:
     password = "Password1"
 
-    register = client.post(
+    register = db_client.post(
         "/api/v1/auth/register",
         json={"email": unique_email, "password": password},
     )
@@ -14,16 +14,19 @@ def test_register_login_and_me(client, unique_email: str) -> None:
     assert register_body["access_token"]
     assert register_body["user"]["email"] == unique_email
 
-    login = client.post(
+    login = db_client.post(
         "/api/v1/auth/login",
         json={"email": unique_email, "password": password},
     )
     assert login.status_code == 200
     access_token = login.json()["access_token"]
 
-    me = client.get(
+    me = db_client.get(
         "/api/v1/auth/me",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert me.status_code == 200
     assert me.json()["email"] == unique_email
+
+    logout = db_client.post("/api/v1/auth/logout")
+    assert logout.status_code == 204

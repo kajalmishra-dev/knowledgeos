@@ -5,7 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies.auth import get_current_user
 from app.dependencies.database import get_db
+from app.dependencies.knowledge import get_document_service
 from app.modules.auth.infrastructure.models.user import UserModel
+from app.modules.knowledge.application.services.document_service import DocumentService
 from app.modules.workspace.application.services.workspace_service import (
     WorkspaceNotFoundError,
     WorkspaceService,
@@ -86,8 +88,10 @@ async def delete_workspace(
     workspace_id: UUID,
     current_user: UserModel = Depends(get_current_user),
     service: WorkspaceService = Depends(get_workspace_service),
+    documents: DocumentService = Depends(get_document_service),
 ) -> None:
     try:
+        await documents.delete_all_in_workspace(workspace_id, current_user.id)
         await service.delete(workspace_id, current_user.id)
     except WorkspaceNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
