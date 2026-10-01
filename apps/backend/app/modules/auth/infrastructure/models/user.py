@@ -32,11 +32,11 @@ class UserModel(BaseModel, Base):
         server_default="false",
     )
 
-    refresh_tokens: Mapped[list[RefreshTokenModel]] = relationship(
+    refresh_tokens: Mapped[list["RefreshTokenModel"]] = relationship(  # noqa: UP037
         back_populates="user",
         cascade="all, delete-orphan",
     )
-    workspaces: Mapped[list[WorkspaceModel]] = relationship(
+    workspaces: Mapped[list["WorkspaceModel"]] = relationship(  # noqa: UP037
         back_populates="owner",
         cascade="all, delete-orphan",
     )
