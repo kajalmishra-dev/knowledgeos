@@ -156,7 +156,7 @@ def _resolve_file(filename: str, content_type: str | None) -> tuple[str, str, st
         resolved_type = default_type
     allowed_types = {item[0] for item in ALLOWED_EXTENSIONS.values()}
     if resolved_type not in allowed_types and resolved_type != default_type:
-        # Trust the extension when browsers send a generic type; reject true mismatches.
+        # Use the extension when the client sends a generic MIME type; reject explicit mismatches.
         if resolved_type not in allowed_types:
             resolved_type = default_type
     return safe_name, default_type, source_type
