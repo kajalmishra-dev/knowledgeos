@@ -46,7 +46,11 @@ class AuthService:
         await self._session.flush()
         return await self._issue_tokens(user)
 
-    async def login(self, email: str, password: str) -> tuple[UserModel, str, int, str, datetime]:
+    async def login(
+        self,
+        email: str,
+        password: str,
+    ) -> tuple[UserModel, str, int, str, datetime]:
         user = await self._get_user_by_email(email)
         if user is None or not security.verify_password(password, user.hashed_password):
             raise InvalidCredentialsError("Invalid email or password.")
@@ -54,7 +58,10 @@ class AuthService:
             raise InvalidCredentialsError("User account is inactive.")
         return await self._issue_tokens(user)
 
-    async def refresh(self, refresh_token: str) -> tuple[UserModel, str, int, str, datetime]:
+    async def refresh(
+        self,
+        refresh_token: str,
+    ) -> tuple[UserModel, str, int, str, datetime]:
         token_hash = security.hash_refresh_token(refresh_token)
         result = await self._session.execute(
             select(RefreshTokenModel).where(RefreshTokenModel.token_hash == token_hash)
