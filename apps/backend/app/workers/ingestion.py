@@ -26,6 +26,13 @@ async def startup(ctx: dict) -> None:
     logger.info("Ingestion worker started")
 
 
+async def shutdown(ctx: dict) -> None:
+    embeddings = ctx.get("embeddings")
+    close = getattr(embeddings, "aclose", None)
+    if close is not None:
+        await close()
+
+
 async def ingest_document(ctx: dict, document_id: str) -> None:
     settings = ctx["settings"]
     async with async_session_factory() as session:
@@ -51,6 +58,7 @@ async def ingest_document(ctx: dict, document_id: str) -> None:
 class WorkerSettings:
     functions = [ingest_document]
     on_startup = startup
+    on_shutdown = shutdown
     redis_settings = RedisSettings.from_dsn(get_settings().redis_url)
     max_jobs = 2
     max_tries = 3

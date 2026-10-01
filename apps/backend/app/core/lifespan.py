@@ -6,6 +6,7 @@ from fastapi import FastAPI
 import app.infrastructure.database.models  # noqa: F401
 from app.core.config import get_settings
 from app.core.logging import setup_logging
+from app.dependencies.knowledge import shutdown_resources
 from app.infrastructure.database.session import engine
 
 
@@ -18,5 +19,8 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     }:
         raise RuntimeError("Set a strong JWT_SECRET_KEY before running in production.")
     setup_logging(settings)
-    yield
-    await engine.dispose()
+    try:
+        yield
+    finally:
+        await shutdown_resources()
+        await engine.dispose()
