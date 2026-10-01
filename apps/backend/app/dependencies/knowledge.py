@@ -56,3 +56,19 @@ def get_document_service(
     settings: Settings = Depends(get_settings),
 ) -> DocumentService:
     return DocumentService(session, storage, queue, settings)
+
+
+async def shutdown_resources() -> None:
+    global _arq_queue, _embedding_provider, _chat_provider
+
+    if _arq_queue is not None:
+        await _arq_queue.aclose()
+        _arq_queue = None
+
+    for provider in (_embedding_provider, _chat_provider):
+        close = getattr(provider, "aclose", None)
+        if close is not None:
+            await close()
+
+    _embedding_provider = None
+    _chat_provider = None

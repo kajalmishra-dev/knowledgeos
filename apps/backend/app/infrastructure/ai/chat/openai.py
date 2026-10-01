@@ -45,3 +45,6 @@ class OpenAIChatProvider:
             raise RuntimeError("Chat provider request failed.") from exc
         content = response.json()["choices"][0]["message"]["content"]
         return (content or "").strip()
+
+    async def aclose(self) -> None:
+        await self._client.aclose()

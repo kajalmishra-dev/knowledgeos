@@ -26,3 +26,7 @@ class ArqJobQueue:
             return bool(await pool.ping())
         except Exception:
             return False
+
+    async def aclose(self) -> None:
+        if self._pool is not None and not self._pool.closed:
+            await self._pool.aclose()

@@ -45,3 +45,6 @@ class OpenAIEmbeddingProvider:
             data.sort(key=lambda item: item["index"])
             vectors.extend(item["embedding"] for item in data)
         return vectors
+
+    async def aclose(self) -> None:
+        await self._client.aclose()
