@@ -121,7 +121,7 @@ class Settings(BaseSettings):
     rag_max_context_chars: int = Field(default=12_000, validation_alias="RAG_MAX_CONTEXT_CHARS")
 
     @model_validator(mode="after")
-    def validate_runtime_settings(self) -> "Settings":
+    def validate_runtime_settings(self) -> Settings:
         if self.embedding_dimensions != EMBEDDING_DIMENSIONS:
             raise ValueError(
                 f"EMBEDDING_DIMENSIONS must remain {EMBEDDING_DIMENSIONS} "

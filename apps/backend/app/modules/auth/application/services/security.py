@@ -17,7 +17,14 @@ def verify_password(password: str, hashed_password: str) -> bool:
     return password_hasher.verify(password, hashed_password)
 
 
-def create_access_token(*, user_id: UUID, email: str, secret: str, algorithm: str, minutes: int) -> tuple[str, int]:
+def create_access_token(
+    *,
+    user_id: UUID,
+    email: str,
+    secret: str,
+    algorithm: str,
+    minutes: int,
+) -> tuple[str, int]:
     expires_in = minutes * 60
     expires_at = datetime.now(UTC) + timedelta(minutes=minutes)
     payload = {

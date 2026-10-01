@@ -27,7 +27,12 @@ class AuthService:
         self._session = session
         self._settings = settings
 
-    async def register(self, email: str, password: str, full_name: str | None = None) -> tuple[UserModel, str, int, str, datetime]:
+    async def register(
+        self,
+        email: str,
+        password: str,
+        full_name: str | None = None,
+    ) -> tuple[UserModel, str, int, str, datetime]:
         normalized_email = email.strip().lower()
         if await self._email_exists(normalized_email):
             raise EmailAlreadyRegisteredError("Email is already registered.")
@@ -97,7 +102,9 @@ class AuthService:
             minutes=self._settings.jwt_access_token_expire_minutes,
         )
         refresh_token = security.generate_refresh_token()
-        refresh_expires_at = datetime.now(UTC) + timedelta(days=self._settings.refresh_token_expire_days)
+        refresh_expires_at = datetime.now(UTC) + timedelta(
+            days=self._settings.refresh_token_expire_days
+        )
         self._session.add(
             RefreshTokenModel(
                 user_id=user.id,

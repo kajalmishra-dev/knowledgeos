@@ -26,7 +26,12 @@ def _user_response(user: UserModel) -> UserResponse:
     return UserResponse.model_validate(user)
 
 
-def _set_refresh_cookie(response: Response, settings: Settings, token: str, expires_at: datetime) -> None:
+def _set_refresh_cookie(
+    response: Response,
+    settings: Settings,
+    token: str,
+    expires_at: datetime,
+) -> None:
     response.set_cookie(
         key=settings.refresh_token_cookie_name,
         value=token,
@@ -101,7 +106,10 @@ async def refresh(
 ) -> TokenResponse:
     refresh_token = request.cookies.get(settings.refresh_token_cookie_name)
     if not refresh_token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token missing.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token missing.",
+        )
 
     try:
         _, access_token, expires_in, new_refresh_token, refresh_expires = await auth.refresh(
