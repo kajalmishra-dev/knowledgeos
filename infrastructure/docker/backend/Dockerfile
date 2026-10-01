@@ -12,11 +12,11 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY apps/backend/pyproject.toml apps/backend/README.md ./
+COPY apps/backend/app ./app
 
 RUN pip install --upgrade pip \
-    && pip install -e .
+    && pip install .
 
-COPY apps/backend/app ./app
 COPY apps/backend/alembic ./alembic
 COPY apps/backend/alembic.ini ./
 COPY infrastructure/docker/backend/entrypoint.sh /entrypoint.sh
