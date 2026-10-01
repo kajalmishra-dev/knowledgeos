@@ -2,8 +2,10 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from app.core.constants import EMBEDDING_DIMENSIONS
 
 # Resolve .env relative to the backend package root, not the process cwd.
 _BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
@@ -117,6 +119,19 @@ class Settings(BaseSettings):
     retrieval_top_k: int = Field(default=5, validation_alias="RETRIEVAL_TOP_K")
     retrieval_min_score: float = Field(default=0.18, validation_alias="RETRIEVAL_MIN_SCORE")
     rag_max_context_chars: int = Field(default=12_000, validation_alias="RAG_MAX_CONTEXT_CHARS")
+
+    @model_validator(mode="after")
+    def validate_runtime_settings(self) -> "Settings":
+        if self.embedding_dimensions != EMBEDDING_DIMENSIONS:
+            raise ValueError(
+                f"EMBEDDING_DIMENSIONS must remain {EMBEDDING_DIMENSIONS} "
+                "until a matching Alembic migration changes the vector column."
+            )
+        if self.chunk_size <= 0:
+            raise ValueError("INGESTION_CHUNK_SIZE must be positive.")
+        if self.chunk_overlap < 0 or self.chunk_overlap >= self.chunk_size:
+            raise ValueError("INGESTION_CHUNK_OVERLAP must be >= 0 and < INGESTION_CHUNK_SIZE.")
+        return self
 
     @property
     def sqlalchemy_echo(self) -> bool:
