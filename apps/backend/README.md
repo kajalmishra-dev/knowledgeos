@@ -49,7 +49,7 @@ For a single-process demo without a worker, set `INGESTION_QUEUE=inline` in `.en
 pytest
 ```
 
-Integration tests skip automatically if Postgres is not reachable. Full walkthrough: [docs/HOW_TO_RUN.md](../docs/HOW_TO_RUN.md).
+Integration tests skip automatically if Postgres is not reachable. Full walkthrough: [docs/HOW_TO_RUN.md](../../docs/HOW_TO_RUN.md).
 
 ## Migrations
 
