@@ -12,14 +12,18 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY apps/backend/pyproject.toml apps/backend/README.md ./
+COPY apps/backend/app ./app
 
 RUN pip install --upgrade pip \
-    && pip install -e ".[dev]"
+    && pip install .
 
-COPY apps/backend/app ./app
 COPY apps/backend/alembic ./alembic
 COPY apps/backend/alembic.ini ./
+COPY infrastructure/docker/backend/entrypoint.sh /entrypoint.sh
+
+RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app"]
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -46,7 +46,7 @@ services:
       - knowledgeos
 
   minio:
-    image: minio/minio:latest
+    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
     container_name: knowledgeos-minio
     restart: unless-stopped
     command: server /data --console-address ":9001"
@@ -68,7 +68,7 @@ services:
       - knowledgeos
 
   minio-init:
-    image: minio/mc:latest
+    image: minio/mc:RELEASE.2024-11-21T17-21-54Z
     container_name: knowledgeos-minio-init
     depends_on:
       minio:
@@ -94,7 +94,7 @@ services:
     env_file:
       - path: .env
         required: false
-    environment:
+    environment: &backend-env
       APP_NAME: ${APP_NAME:-KnowledgeOS API}
       APP_VERSION: ${APP_VERSION:-0.1.0}
       ENVIRONMENT: ${ENVIRONMENT:-development}
@@ -108,12 +108,76 @@ services:
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       MINIO_BUCKET: ${MINIO_BUCKET:-knowledgeos}
       MINIO_SECURE: "false"
+      STORAGE_BACKEND: ${STORAGE_BACKEND:-minio}
+      INGESTION_QUEUE: ${INGESTION_QUEUE:-arq}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-only-change-me}
+      MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-10000000}
+      INGESTION_CHUNK_SIZE: ${INGESTION_CHUNK_SIZE:-800}
+      INGESTION_CHUNK_OVERLAP: ${INGESTION_CHUNK_OVERLAP:-150}
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-local}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
+      EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS:-1536}
+      CHAT_PROVIDER: ${CHAT_PROVIDER:-extractive}
+      CHAT_MODEL: ${CHAT_MODEL:-gpt-4o-mini}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      RETRIEVAL_TOP_K: ${RETRIEVAL_TOP_K:-5}
+      RETRIEVAL_MIN_SCORE: ${RETRIEVAL_MIN_SCORE:-0.18}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
+    command:
+      [
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--reload",
+        "--reload-dir",
+        "/app",
+      ]
     volumes:
       - ./apps/backend:/app
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/api/v1/ready"]
+      interval: 10s
+      timeout: 8s
+      retries: 12
+      start_period: 40s
+    networks:
+      - knowledgeos
+
+  worker:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/backend/Dockerfile
+    container_name: knowledgeos-worker
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      <<: *backend-env
+      SKIP_MIGRATIONS: "true"
+    command: ["arq", "app.workers.ingestion.WorkerSettings"]
+    volumes:
+      - ./apps/backend:/app
+    depends_on:
+      backend:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     networks:
       - knowledgeos

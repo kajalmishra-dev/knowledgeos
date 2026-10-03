@@ -1,3 +1,4 @@
+from pgvector.sqlalchemy import Vector  # noqa: F401
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
 

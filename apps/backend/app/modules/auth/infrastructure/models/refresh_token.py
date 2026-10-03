@@ -1,13 +1,17 @@
 from __future__ import annotations
 
-from datetime import datetime
 import uuid
+from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.infrastructure.database.base import Base
 from app.infrastructure.database.mixins import UUIDPrimaryKeyMixin
+
+if TYPE_CHECKING:
+    from app.modules.auth.infrastructure.models.user import UserModel
 
 
 class RefreshTokenModel(UUIDPrimaryKeyMixin, Base):

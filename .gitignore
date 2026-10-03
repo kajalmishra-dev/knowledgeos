@@ -1,1 +1,36 @@
+# Environment and secrets
 .env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyright/
+.coverage
+htmlcov/
+
+# Node / frontend tooling
+node_modules/
+.next/
+dist/
+build/
+.npm/
+.pnpm-store/
+
+# Local databases and generated files
+*.db
+*.sqlite
+*.sqlite3
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

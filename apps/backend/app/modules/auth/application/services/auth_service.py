@@ -27,7 +27,12 @@ class AuthService:
         self._session = session
         self._settings = settings
 
-    async def register(self, email: str, password: str, full_name: str | None = None) -> tuple[UserModel, str, int, str, datetime]:
+    async def register(
+        self,
+        email: str,
+        password: str,
+        full_name: str | None = None,
+    ) -> tuple[UserModel, str, int, str, datetime]:
         normalized_email = email.strip().lower()
         if await self._email_exists(normalized_email):
             raise EmailAlreadyRegisteredError("Email is already registered.")
@@ -41,7 +46,11 @@ class AuthService:
         await self._session.flush()
         return await self._issue_tokens(user)
 
-    async def login(self, email: str, password: str) -> tuple[UserModel, str, int, str, datetime]:
+    async def login(
+        self,
+        email: str,
+        password: str,
+    ) -> tuple[UserModel, str, int, str, datetime]:
         user = await self._get_user_by_email(email)
         if user is None or not security.verify_password(password, user.hashed_password):
             raise InvalidCredentialsError("Invalid email or password.")
@@ -49,7 +58,10 @@ class AuthService:
             raise InvalidCredentialsError("User account is inactive.")
         return await self._issue_tokens(user)
 
-    async def refresh(self, refresh_token: str) -> tuple[UserModel, str, int, str, datetime]:
+    async def refresh(
+        self,
+        refresh_token: str,
+    ) -> tuple[UserModel, str, int, str, datetime]:
         token_hash = security.hash_refresh_token(refresh_token)
         result = await self._session.execute(
             select(RefreshTokenModel).where(RefreshTokenModel.token_hash == token_hash)
@@ -97,7 +109,9 @@ class AuthService:
             minutes=self._settings.jwt_access_token_expire_minutes,
         )
         refresh_token = security.generate_refresh_token()
-        refresh_expires_at = datetime.now(UTC) + timedelta(days=self._settings.refresh_token_expire_days)
+        refresh_expires_at = datetime.now(UTC) + timedelta(
+            days=self._settings.refresh_token_expire_days
+        )
         self._session.add(
             RefreshTokenModel(
                 user_id=user.id,
